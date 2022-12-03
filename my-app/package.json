@@ -27,6 +27,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "homepage" : "https://nickparov.github.io/PRN_heat/my-app",
   "eslintConfig": {
     "extends": [
       "react-app",
