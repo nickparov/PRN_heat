@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import LoadingButton from "@mui/lab/LoadingButton";
 import TextSnippetIcon from "@mui/icons-material/TextSnippet";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CachedIcon from "@mui/icons-material/Cached";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import CardMedia from "@mui/material/CardMedia";
+import { CardActionArea, Divider } from "@mui/material";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -103,11 +107,81 @@ function processTokens(tokens: string[]): any {
     });
 }
 
+interface HistoryProps {
+    history: string[];
+}
+
+const History = (props: HistoryProps) => {
+    const { history } = props;
+
+    return (
+        <>
+            <Divider variant="middle" sx={{ mt: 16 }} />
+            <Typography sx={{ mt: 4 }} variant="h4">
+                History
+            </Typography>
+            <Typography variant="caption">Click to copy.</Typography>
+            <Grid container sx={{ mt: 1 }} spacing={2}>
+                {history.map((snapshot, idx) => (
+                    <SingleHistory content={snapshot} key={idx} />
+                ))}
+            </Grid>
+        </>
+    );
+};
+
+interface singleHistoryProps {
+    content: string;
+}
+const SingleHistory = (props: singleHistoryProps) => {
+    const { content } = props;
+
+    const cardClickHandler = () => {
+        navigator.clipboard.writeText(content);
+    };
+
+    return (
+        <Grid item xs={4}>
+            <Card sx={{ maxWidth: 345 }}>
+                <CardActionArea onClick={cardClickHandler}>
+                    <CardContent>
+                        <Typography variant="caption" color="text.secondary">
+                            {content}
+                        </Typography>
+                    </CardContent>
+                </CardActionArea>
+            </Card>
+        </Grid>
+    );
+};
+
 function App() {
     const [code, setCode] = useState("");
     const [result, setResult] = useState("");
     const [processError, setProcessError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [history, setHistory] = useState<string[]>([]);
+
+    useEffect(() => {
+        localStorage.setItem("history", JSON.stringify(history));
+    }, [history]);
+
+    useEffect(() => {
+        const localHistory = JSON.parse(localStorage.getItem("history") || "");
+
+        if (localHistory && localHistory !== "") {
+            setHistory(localHistory);
+        }
+    }, []);
+
+    const updateHistory = (piece: string) => {
+        const updatedHis = [...history];
+
+        if (updatedHis.length >= 6) updatedHis.pop();
+
+        updatedHis.unshift(piece);
+        setHistory(updatedHis);
+    };
 
     const generateLinkHandler = () => {
         const convertedCode = convert();
@@ -129,7 +203,11 @@ function App() {
                 return res.json();
             })
             .then((offerData) => {
-                setResult(offerToText(offerData));
+                const offerHumanText = offerToText(offerData);
+
+                updateHistory(offerHumanText);
+
+                setResult(offerHumanText);
             })
             .catch((err) => {
                 setProcessError(err);
@@ -159,6 +237,8 @@ function App() {
     const convertHandler = () => {
         const resultCode = convert();
 
+        updateHistory(resultCode);
+
         setResult(resultCode);
     };
 
@@ -170,7 +250,7 @@ function App() {
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
             <div className="App">
-                <Container maxWidth="lg">
+                <Container maxWidth="lg" sx={{ py: 8 }}>
                     <Typography variant="h3" gutterBottom>
                         Convert or Get Text from PNR
                         <Typography
@@ -255,6 +335,7 @@ function App() {
                             </Button>
                         </Grid>
                     </Grid>
+                    {history.length !== 0 && <History history={history} />}
                 </Container>
             </div>
         </ThemeProvider>
