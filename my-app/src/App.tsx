@@ -6,7 +6,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CachedIcon from "@mui/icons-material/Cached";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import { CardActionArea } from "@mui/material";
+import { CardActionArea, Snackbar, SnackbarOrigin } from "@mui/material";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -82,26 +82,57 @@ function hasNumber(myString: string) {
     return /\d/.test(myString);
 }
 
-function processTokens(tokens: string[]): any {
-    return tokens.map((token) => {
-        if (
-            (token.length === 5 || token.length === 4) &&
-            (getLastChar(token) === "A" || getLastChar(token) === "P") &&
-            hasNumber(token)
-        ) {
-            let proxyTime: string;
-            let trueTime: string;
-            try {
-                proxyTime = getProxy(token);
-                trueTime = convertTime12To24(proxyTime);
+function US_CDG_timeToken(token: string) {
+    return (
+        (token.length === 5 || token.length === 4) &&
+        (getLastChar(token) === "A" || getLastChar(token) === "P") &&
+        hasNumber(token)
+    );
+}
 
-                return trueTime;
-            } catch (error) {
-                throw error;
+function getTrueTimeFromCDGToken(token: string) {
+    let proxyTime: string;
+    let trueTime: string;
+
+    try {
+        proxyTime = getProxy(token);
+        trueTime = convertTime12To24(proxyTime);
+
+        return trueTime;
+    } catch (error) {
+        throw error;
+    }
+}
+
+function processTokens(tokens: string[]): string[] {
+    return tokens.map((token) => {
+        const includesPlus = token.includes("+");
+        const includesMinus = token.includes("-");
+
+        if (includesPlus || includesMinus) {
+            const parsedTokenArr =
+                includesPlus === true ? token.split("+") : token.split("-");
+
+            if (
+                US_CDG_timeToken(parsedTokenArr[0]) &&
+                hasNumber(parsedTokenArr[1])
+            ) {
+                return `${getTrueTimeFromCDGToken(parsedTokenArr[0])}${
+                    includesPlus ? "+" : "-"
+                }${parsedTokenArr[1]}`;
             }
-        } else {
-            return token;
         }
+
+        if (US_CDG_timeToken(token)) {
+            // 825A+1
+            return getTrueTimeFromCDGToken(token);
+        }
+
+        if (token.includes("CDG")) {
+            return "CDG";
+        }
+
+        return token;
     });
 }
 
@@ -156,6 +187,11 @@ const SingleHistory = (props: singleHistoryProps) => {
     );
 };
 
+interface SnackbarState extends SnackbarOrigin {
+    open: boolean;
+    msg: string;
+}
+
 function App() {
     const [code, setCode] = useState("");
     const [result, setResult] = useState("");
@@ -163,12 +199,31 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [history, setHistory] = useState<string[]>([]);
 
+    const [snackbar, setSnackbar] = React.useState<SnackbarState>({
+        open: false,
+        vertical: "top",
+        horizontal: "right",
+        msg: "",
+    });
+
     useEffect(() => {
-        const localHistory = JSON.parse(localStorage.getItem("history") || "[]");
+        const localHistory = JSON.parse(
+            localStorage.getItem("history") || "[]"
+        );
         if (localHistory && localHistory.length !== 0) {
             setHistory(localHistory);
         }
     }, []);
+
+    const openSnackbar = (givenMsg: string) => {
+        if (!snackbar.open) {
+            setSnackbar({ ...snackbar, open: true, msg: givenMsg });
+        }
+    };
+
+    const closeSnackbar = () => {
+        setSnackbar({ ...snackbar, open: false});
+    };
 
     const updateHistory = (piece: string) => {
         const updatedHis = [...history];
@@ -186,7 +241,7 @@ function App() {
         setHistory([]);
     };
 
-    const generateLinkHandler = () => {
+    const generateTextHandler = () => {
         const convertedCode = convert();
         const queryCode = convertedCode.split("\n").join(" ");
 
@@ -216,6 +271,8 @@ function App() {
                 updateHistory(offerHumanText);
 
                 setResult(offerHumanText);
+
+                openSnackbar("Text Generated.");
             })
             .catch((err) => {
                 console.log(err);
@@ -243,8 +300,12 @@ function App() {
         return trueLines.join("\n");
     };
 
-    const convertHandler = () => {
+    const convertHandler = (): void => {
+        if (code.length === 0) return;
+
         const resultCode = convert();
+
+        openSnackbar("Conversion done.");
 
         updateHistory(resultCode);
 
@@ -253,13 +314,31 @@ function App() {
 
     const copyHandler = () => {
         navigator.clipboard.writeText(result);
+        openSnackbar("Text copied.");
     };
+
+    const { vertical, horizontal, open, msg: snackMsg } = snackbar;
 
     return (
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
             <div className="App">
                 <Container maxWidth="lg" sx={{ py: 8 }}>
+                    <Snackbar
+                        open={open}
+                        anchorOrigin={{ vertical, horizontal }}
+                        autoHideDuration={2000}
+                        onClose={closeSnackbar}
+                        message={snackMsg}
+                    >
+                        <Alert
+                            onClose={closeSnackbar}
+                            severity="success"
+                            sx={{ width: "100%" }}
+                        >
+                            {snackMsg}
+                        </Alert>
+                    </Snackbar>
                     <Typography variant="h3" gutterBottom>
                         Convert or Get Text from PNR
                         <Typography
@@ -312,7 +391,7 @@ function App() {
                                 Convert
                             </Button>
                             <LoadingButton
-                                onClick={generateLinkHandler}
+                                onClick={generateTextHandler}
                                 variant="outlined"
                                 loading={loading}
                                 loadingPosition="start"
@@ -332,7 +411,7 @@ function App() {
                                 multiline={true}
                                 rows={6}
                                 value={result}
-                                disabled
+                                onChange={(e) => setResult(e.target.value)}
                             />
                             <Button
                                 sx={{ mt: 2 }}
