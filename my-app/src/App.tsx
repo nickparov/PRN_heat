@@ -6,7 +6,6 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CachedIcon from "@mui/icons-material/Cached";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
 import { CardActionArea, Divider } from "@mui/material";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
@@ -163,12 +162,7 @@ function App() {
     const [history, setHistory] = useState<string[]>([]);
 
     useEffect(() => {
-        localStorage.setItem("history", JSON.stringify(history));
-    }, [history]);
-
-    useEffect(() => {
         const localHistory = JSON.parse(localStorage.getItem("history") || "");
-
         if (localHistory && localHistory !== "") {
             setHistory(localHistory);
         }
@@ -181,6 +175,8 @@ function App() {
 
         updatedHis.unshift(piece);
         setHistory(updatedHis);
+
+        localStorage.setItem("history", JSON.stringify(updatedHis));
     };
 
     const generateLinkHandler = () => {
