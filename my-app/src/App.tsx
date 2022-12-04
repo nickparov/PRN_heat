@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 import LoadingButton from "@mui/lab/LoadingButton";
 import TextSnippetIcon from "@mui/icons-material/TextSnippet";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CachedIcon from "@mui/icons-material/Cached";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
@@ -171,7 +172,14 @@ function App() {
             <div className="App">
                 <Container maxWidth="lg">
                     <Typography variant="h3" gutterBottom>
-                        U.S. PRN Time to EUR PRN time
+                        Convert or Get Text from PNR
+                        <Typography
+                            variant="overline"
+                            display="block"
+                            gutterBottom
+                        >
+                            Читаем ваши мысли <br />
+                        </Typography>
                     </Typography>
 
                     {processError !== "" && (
@@ -226,7 +234,7 @@ function App() {
                         </Grid>
                         <Grid item>
                             <Typography variant="h3" gutterBottom>
-                                Results
+                                Result
                             </Typography>
                             <TextField
                                 fullWidth
@@ -242,6 +250,7 @@ function App() {
                                 variant="outlined"
                                 onClick={copyHandler}
                             >
+                                <ContentCopyIcon sx={{ mr: 1 }} />
                                 Copy
                             </Button>
                         </Grid>
