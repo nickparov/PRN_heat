@@ -202,10 +202,15 @@ function App() {
             }),
         })
             .then((res) => {
-                if (!res.ok) throw new Error("Error happened man!!!");
+                if (!res.ok) {
+                    setProcessError("Server Error.");
+                    return null;
+                };
                 return res.json();
             })
             .then((offerData) => {
+                if(!offerData) return;
+
                 const offerHumanText = offerToText(offerData);
 
                 updateHistory(offerHumanText);
@@ -213,6 +218,7 @@ function App() {
                 setResult(offerHumanText);
             })
             .catch((err) => {
+                console.log(err);
                 setProcessError(err);
             })
             .finally(() => {
