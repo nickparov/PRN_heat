@@ -89,7 +89,6 @@ function processTokens(tokens: string[]): any {
             (getLastChar(token) === "A" || getLastChar(token) === "P") &&
             hasNumber(token)
         ) {
-            console.log(token);
             let proxyTime: string;
             let trueTime: string;
             try {
@@ -108,14 +107,14 @@ function processTokens(tokens: string[]): any {
 
 interface HistoryProps {
     history: string[];
+    clearHandler: () => void;
 }
 
 const History = (props: HistoryProps) => {
-    const { history } = props;
+    const { history, clearHandler } = props;
 
     return (
-        <>
-            <Divider variant="middle" sx={{ mt: 16 }} />
+        <Grid sx={{ mt: 12 }}>
             <Typography sx={{ mt: 4 }} variant="h4">
                 History
             </Typography>
@@ -125,7 +124,10 @@ const History = (props: HistoryProps) => {
                     <SingleHistory content={snapshot} key={idx} />
                 ))}
             </Grid>
-        </>
+            <Button onClick={clearHandler} sx={{ mt: 2 }} variant="outlined">
+                Clear
+            </Button>
+        </Grid>
     );
 };
 
@@ -177,6 +179,11 @@ function App() {
         setHistory(updatedHis);
 
         localStorage.setItem("history", JSON.stringify(updatedHis));
+    };
+
+    const clearHistoryHandler = (): void => {
+        localStorage.setItem("history", JSON.stringify([]));
+        setHistory([]);
     };
 
     const generateLinkHandler = () => {
@@ -322,16 +329,22 @@ function App() {
                                 disabled
                             />
                             <Button
-                                sx={{ mt: 4 }}
+                                sx={{ mt: 2 }}
                                 variant="outlined"
                                 onClick={copyHandler}
+                                fullWidth
                             >
                                 <ContentCopyIcon sx={{ mr: 1 }} />
                                 Copy
                             </Button>
                         </Grid>
                     </Grid>
-                    {history.length !== 0 && <History history={history} />}
+                    {history.length !== 0 && (
+                        <History
+                            clearHandler={clearHistoryHandler}
+                            history={history}
+                        />
+                    )}
                 </Container>
             </div>
         </ThemeProvider>
