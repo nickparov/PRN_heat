@@ -1,10 +1,22 @@
 import React, { useState } from "react";
-import logo from "./logo.svg";
-import "./App.css";
+
+import LoadingButton from "@mui/lab/LoadingButton";
+import TextSnippetIcon from "@mui/icons-material/TextSnippet";
+import CachedIcon from "@mui/icons-material/Cached";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Button, Container, Grid, TextField, Typography } from "@mui/material";
+import {
+    Alert,
+    Button,
+    Container,
+    Grid,
+    TextField,
+    Typography,
+} from "@mui/material";
+import "./App.css";
+
+import { offerToText } from "./utils/magic";
 
 const darkTheme = createTheme({
     palette: {
@@ -13,16 +25,20 @@ const darkTheme = createTheme({
 });
 
 function convertTime12To24(time: any): string {
-    var hours = Number(time.match(/^(\d+)/)[1]);
-    var minutes = Number(time.match(/:(\d+)/)[1]);
-    var AMPM = time.match(/\s(.*)$/)[1];
-    if (AMPM === "PM" && hours < 12) hours = hours + 12;
-    if (AMPM === "AM" && hours === 12) hours = hours - 12;
-    var sHours = hours.toString();
-    var sMinutes = minutes.toString();
-    if (hours < 10) sHours = "0" + sHours;
-    if (minutes < 10) sMinutes = "0" + sMinutes;
-    return sHours + sMinutes;
+    try {
+        var hours = Number(time.match(/^(\d+)/)[1]);
+        var minutes = Number(time.match(/:(\d+)/)[1]);
+        var AMPM = time.match(/\s(.*)$/)[1];
+        if (AMPM === "PM" && hours < 12) hours = hours + 12;
+        if (AMPM === "AM" && hours === 12) hours = hours - 12;
+        var sHours = hours.toString();
+        var sMinutes = minutes.toString();
+        if (hours < 10) sHours = "0" + sHours;
+        if (minutes < 10) sMinutes = "0" + sMinutes;
+        return sHours + sMinutes;
+    } catch (error) {
+        throw error;
+    }
 }
 
 function insert(main_string: string, ins_string: string, pos: number) {
@@ -70,9 +86,16 @@ function processTokens(tokens: string[]): any {
             hasNumber(token)
         ) {
             console.log(token);
-            const proxyTime = getProxy(token);
-            const trueTime = convertTime12To24(proxyTime);
-            return trueTime;
+            let proxyTime: string;
+            let trueTime: string;
+            try {
+                proxyTime = getProxy(token);
+                trueTime = convertTime12To24(proxyTime);
+
+                return trueTime;
+            } catch (error) {
+                throw error;
+            }
         } else {
             return token;
         }
@@ -82,8 +105,40 @@ function processTokens(tokens: string[]): any {
 function App() {
     const [code, setCode] = useState("");
     const [result, setResult] = useState("");
+    const [processError, setProcessError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const convertHandler = () => {
+    const generateLinkHandler = () => {
+        const convertedCode = convert();
+        const queryCode = convertedCode.split("\n").join(" ");
+
+        console.log(queryCode);
+        setLoading(true);
+        fetch("https://us-central1-pnrconverter.cloudfunctions.net/main", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json;charset=UTF-8",
+            },
+            body: JSON.stringify({
+                query: queryCode,
+            }),
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error("Error happened man!!!");
+                return res.json();
+            })
+            .then((offerData) => {
+                setResult(offerToText(offerData));
+            })
+            .catch((err) => {
+                setProcessError(err);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
+
+    const convert = (): string => {
         const trueLines: string[] = [];
         // _ or __: AM/PM
         const lines = code.split("\n").map((el) => {
@@ -91,25 +146,47 @@ function App() {
         });
         // console.log(convertTime12To24("3:44 AM"));
         lines.forEach((line) => {
-            trueLines.push(processTokens(line.split(" ")).join(" "));
+            try {
+                const trueLine = processTokens(line.split(" ")).join(" ");
+                trueLines.push(trueLine);
+            } catch (error) {}
         });
 
-        const resultCode = trueLines.join("\n");
+        return trueLines.join("\n");
+    };
+
+    const convertHandler = () => {
+        const resultCode = convert();
+
         setResult(resultCode);
     };
 
     const copyHandler = () => {
-      navigator.clipboard.writeText(result);
+        navigator.clipboard.writeText(result);
     };
 
     return (
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
             <div className="App">
-                <Container maxWidth="xl">
+                <Container maxWidth="lg">
                     <Typography variant="h3" gutterBottom>
                         U.S. PRN Time to EUR PRN time
                     </Typography>
+
+                    {processError !== "" && (
+                        <Alert
+                            onClose={() => {
+                                setProcessError("");
+                                setResult("");
+                            }}
+                            sx={{ mb: 2 }}
+                            severity="error"
+                        >
+                            Conversion error: {processError}
+                        </Alert>
+                    )}
+
                     <Grid
                         container
                         spacing={2}
@@ -129,9 +206,23 @@ function App() {
                             />
                         </Grid>
                         <Grid item sx={{ mb: 12 }}>
-                            <Button onClick={convertHandler} variant="outlined">
+                            <Button
+                                sx={{ mr: 2 }}
+                                onClick={convertHandler}
+                                variant="outlined"
+                            >
+                                <CachedIcon sx={{ mr: 1 }} />
                                 Convert
                             </Button>
+                            <LoadingButton
+                                onClick={generateLinkHandler}
+                                variant="outlined"
+                                loading={loading}
+                                loadingPosition="start"
+                                startIcon={<TextSnippetIcon sx={{ mr: 1 }} />}
+                            >
+                                Convert & Get Text
+                            </LoadingButton>
                         </Grid>
                         <Grid item>
                             <Typography variant="h3" gutterBottom>
