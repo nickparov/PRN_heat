@@ -6,7 +6,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CachedIcon from "@mui/icons-material/Cached";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import { CardActionArea, Divider } from "@mui/material";
+import { CardActionArea } from "@mui/material";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -164,8 +164,8 @@ function App() {
     const [history, setHistory] = useState<string[]>([]);
 
     useEffect(() => {
-        const localHistory = JSON.parse(localStorage.getItem("history") || "");
-        if (localHistory && localHistory !== "") {
+        const localHistory = JSON.parse(localStorage.getItem("history") || "[]");
+        if (localHistory && localHistory.length !== 0) {
             setHistory(localHistory);
         }
     }, []);
@@ -205,11 +205,11 @@ function App() {
                 if (!res.ok) {
                     setProcessError("Server Error.");
                     return null;
-                };
+                }
                 return res.json();
             })
             .then((offerData) => {
-                if(!offerData) return;
+                if (!offerData) return;
 
                 const offerHumanText = offerToText(offerData);
 
