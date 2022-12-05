@@ -68,7 +68,7 @@ function getProxy(rawTime: string): string {
     } else if (digitsStr.length === 4) {
         digitsStr = insert(digitsStr, ":", 2);
     } else {
-        throw new Error("Invalid Time Format");
+        throw new Error(`Invalid Time Format: ${rawTime}`);
     }
 
     return `${digitsStr} ${letter}`;
@@ -86,15 +86,21 @@ function checkJoinedTimeLetters(str: string) {
     if ((str.includes("A") || str.includes("P")) && hasNumber(str)) {
         let Ps = 0;
         let As = 0;
+        let allOtherLetters = 0;
 
         // count As and Ps
         str.split("").forEach((letter) => {
-            if (letter === "A") As++;
-            if (letter === "P") Ps++;
+            if (letter === "A") {
+                As++;
+            } else if (letter === "P") {
+                Ps++;
+            } else if (!hasNumber(letter)) {
+                allOtherLetters++;
+            };
         });
 
         const total = Ps + As;
-        if (total === 2) {
+        if (total === 2 && allOtherLetters === 0) {
             return true;
         }
     }
@@ -124,21 +130,48 @@ function getTrueTimeFromCDGToken(token: string) {
     }
 }
 
+function charIndexes(substring: string, string: string) {
+    var a = [],
+        i = -1;
+    while ((i = string.indexOf(substring, i + 1)) >= 0) a.push(i);
+    return a;
+}
+
 function processTokens(tokens: string[]): string[] {
     return tokens.map((token) => {
         if (token.length >= 6 && checkJoinedTimeLetters(token)) {
-            const indexOfP = token.indexOf("P");
-            const indexOfA = token.indexOf("A");
+            let indexOfP = token.indexOf("P");
+            let indexOfA = token.indexOf("A");
+            let targetLetter = null;
+            let idxAr = [];
+
+            if (indexOfP === -1) {
+                // all As
+                targetLetter = "A";
+            } else if (indexOfA === -1) {
+                // all Ps
+                targetLetter = "P";
+            }
+
+            if (targetLetter) {
+                idxAr = [...charIndexes(targetLetter, token)];
+            } else {
+                idxAr = [indexOfA, indexOfP];
+            }
+
+            const [fIndex, sIndex] = idxAr;
 
             const timeIndexes = [
-                Math.min(indexOfA, indexOfP) + 1,
-                Math.max(indexOfA, indexOfP),
+                Math.min(fIndex, sIndex) + 1,
+                Math.max(fIndex, sIndex),
             ];
 
             const parsedTimes = [
                 token.substring(0, timeIndexes[0]),
                 token.substring(timeIndexes[0]),
             ];
+
+            console.log("parsedTimes", parsedTimes);
 
             const trueTimes = parsedTimes.map(getTrueTimeFromCDGToken);
 
@@ -328,12 +361,15 @@ function App() {
         const lines = code.split("\n").map((el) => {
             return el;
         });
+
         // console.log(convertTime12To24("3:44 AM"));
         lines.forEach((line) => {
             try {
                 const trueLine = processTokens(line.split(" ")).join(" ");
                 trueLines.push(trueLine);
-            } catch (error) {}
+            } catch (error) {
+                console.error(error);
+            }
         });
 
         return trueLines.join("\n");
