@@ -82,6 +82,26 @@ function hasNumber(myString: string) {
     return /\d/.test(myString);
 }
 
+function checkJoinedTimeLetters(str: string) {
+    if ((str.includes("A") || str.includes("P")) && hasNumber(str)) {
+        let Ps = 0;
+        let As = 0;
+
+        // count As and Ps
+        str.split("").forEach((letter) => {
+            if (letter === "A") As++;
+            if (letter === "P") Ps++;
+        });
+
+        const total = Ps + As;
+        if (total === 2) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function US_CDG_timeToken(token: string) {
     return (
         (token.length === 5 || token.length === 4) &&
@@ -106,6 +126,25 @@ function getTrueTimeFromCDGToken(token: string) {
 
 function processTokens(tokens: string[]): string[] {
     return tokens.map((token) => {
+        if (token.length >= 6 && checkJoinedTimeLetters(token)) {
+            const indexOfP = token.indexOf("P");
+            const indexOfA = token.indexOf("A");
+
+            const timeIndexes = [
+                Math.min(indexOfA, indexOfP) + 1,
+                Math.max(indexOfA, indexOfP),
+            ];
+
+            const parsedTimes = [
+                token.substring(0, timeIndexes[0]),
+                token.substring(timeIndexes[0]),
+            ];
+
+            const trueTimes = parsedTimes.map(getTrueTimeFromCDGToken);
+
+            return trueTimes.join("");
+        }
+
         const includesPlus = token.includes("+");
         const includesMinus = token.includes("-");
 
@@ -222,7 +261,7 @@ function App() {
     };
 
     const closeSnackbar = () => {
-        setSnackbar({ ...snackbar, open: false});
+        setSnackbar({ ...snackbar, open: false });
     };
 
     const updateHistory = (piece: string) => {
@@ -409,7 +448,7 @@ function App() {
                                 id="outlined-basic"
                                 variant="outlined"
                                 multiline={true}
-                                rows={6}
+                                rows={9}
                                 value={result}
                                 onChange={(e) => setResult(e.target.value)}
                             />
