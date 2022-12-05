@@ -96,7 +96,7 @@ function checkJoinedTimeLetters(str: string) {
                 Ps++;
             } else if (!hasNumber(letter)) {
                 allOtherLetters++;
-            };
+            }
         });
 
         const total = Ps + As;
