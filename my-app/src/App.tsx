@@ -227,7 +227,12 @@ const History = (props: HistoryProps) => {
                     <SingleHistory content={snapshot} key={idx} />
                 ))}
             </Grid>
-            <Button onClick={clearHandler} sx={{ mt: 2 }} variant="outlined">
+            <Button
+                onClick={clearHandler}
+                sx={{ mt: 2 }}
+                variant="outlined"
+                size={"large"}
+            >
                 Clear
             </Button>
         </Grid>
@@ -414,35 +419,35 @@ function App() {
                             {snackMsg}
                         </Alert>
                     </Snackbar>
-                    <Typography variant="h3" gutterBottom>
-                        Convert or Get Text from PNR
-                        <Typography
-                            variant="overline"
-                            display="block"
-                            gutterBottom
-                        >
-                            Читаем ваши мысли <br />
-                        </Typography>
-                    </Typography>
-
-                    {processError !== "" && (
-                        <Alert
-                            onClose={() => {
-                                setProcessError("");
-                                setResult("");
-                            }}
-                            sx={{ mb: 2 }}
-                            severity="error"
-                        >
-                            Conversion error: {processError}
-                        </Alert>
-                    )}
 
                     <Grid
                         container
                         spacing={2}
                         sx={{ flexDirection: "column" }}
                     >
+                        <Typography variant="h3" gutterBottom>
+                            Convert or Get Text from PNR
+                            <Typography
+                                variant="overline"
+                                display="block"
+                                gutterBottom
+                            >
+                                Читаем ваши мысли <br />
+                            </Typography>
+                        </Typography>
+
+                        {processError !== "" && (
+                            <Alert
+                                onClose={() => {
+                                    setProcessError("");
+                                    setResult("");
+                                }}
+                                sx={{ mb: 2 }}
+                                severity="error"
+                            >
+                                Conversion error: {processError}
+                            </Alert>
+                        )}
                         <Grid item>
                             <TextField
                                 fullWidth={true}
@@ -456,11 +461,12 @@ function App() {
                                 onChange={(e) => setCode(e.target.value)}
                             />
                         </Grid>
-                        <Grid item sx={{ mb: 12 }}>
+                        <Grid item sx={{ mb: 6 }}>
                             <Button
                                 sx={{ mr: 2 }}
                                 onClick={convertHandler}
                                 variant="outlined"
+                                size="large"
                             >
                                 <CachedIcon sx={{ mr: 1 }} />
                                 Convert
@@ -471,8 +477,9 @@ function App() {
                                 loading={loading}
                                 loadingPosition="start"
                                 startIcon={<TextSnippetIcon sx={{ mr: 1 }} />}
+                                size="large"
                             >
-                                Convert & Get Text
+                                Get Human Text
                             </LoadingButton>
                         </Grid>
                         <Grid item>
@@ -493,6 +500,7 @@ function App() {
                                 variant="outlined"
                                 onClick={copyHandler}
                                 fullWidth
+                                size="large"
                             >
                                 <ContentCopyIcon sx={{ mr: 1 }} />
                                 Copy
