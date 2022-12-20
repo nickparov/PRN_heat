@@ -71,6 +71,9 @@ export function offerToText(offer) {
     const text = offer.name + "\n\n";
     const { options } = offer;
     const optionsToText = [];
+
+    console.log(offer);
+
     for (let i = 0; i < options.length; i++) {
         let optionText = "";
         const option = options[i];

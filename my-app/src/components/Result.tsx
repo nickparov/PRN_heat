@@ -2,7 +2,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Grid, Typography, TextField, Button } from "@mui/material";
 
 interface Props {
-    setResult: React.Dispatch<React.SetStateAction<string>>;
+    setResult: (value: string) => void;
     copyHandler: () => void;
     result: string;
 }
@@ -23,6 +23,7 @@ const Result = (props: Props) => {
                 rows={9}
                 value={result}
                 onChange={(e) => setResult(e.target.value)}
+                inputProps={{ "data-testid": "resultarea" }}
             />
             <Button
                 sx={{ mt: 2 }}
