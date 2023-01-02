@@ -51,7 +51,13 @@ function App() {
         if (localHistory && localHistory.length !== 0) {
             dispatch(doSetHistory(localHistory));
         }
-    });
+    }, []);
+
+    // const localHistory = JSON.parse(localStorage.getItem("history") || "[]");
+
+    // if (localHistory && localHistory.length !== 0) {
+    //     dispatch(doSetHistory(localHistory));
+    // }
 
     useEffect(() => {
         localStorage.setItem("history", JSON.stringify(history));
