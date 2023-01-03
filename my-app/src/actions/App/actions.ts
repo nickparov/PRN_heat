@@ -23,6 +23,17 @@ export const closeSnackbar = (state: appStateInterface, action: appAction) => {
 };
 
 export const appendHistory = (state: appStateInterface, action: appAction) => {
+    // keep only 6 newest records.
+    // check his >= 7.
+    if (state.history.length === 6) {
+        const updatedHis = [...state.history.slice(1), action.payload.value];
+
+        return {
+            ...state,
+            history: updatedHis
+        }
+    }
+
     return {
         ...state,
         history: [...state.history, action.payload.value],

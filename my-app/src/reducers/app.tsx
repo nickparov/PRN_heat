@@ -18,6 +18,8 @@ export interface appAction {
     type: appActionType;
 }
 
+export type appDispatchFunc = React.Dispatch<appAction>;
+
 type anyObject = {
     [key: string]: any;
 };

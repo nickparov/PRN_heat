@@ -14,7 +14,15 @@ import { Controls } from "./components/Controls";
 
 import * as appActionCreators from "./actions/App/actionCreators";
 
-import appReducer, { initialState as initialAppState } from "./reducers/app";
+import appReducer, {
+    appAction,
+    initialState as initialAppState,
+} from "./reducers/app";
+
+// Move away
+import { createContext } from "react";
+
+export const AppDispatchContext = createContext<React.Dispatch<appAction> | null>(null);
 
 const darkTheme = createTheme({
     palette: {
@@ -158,103 +166,107 @@ function App() {
     const { vertical, horizontal, open, msg: snackMsg } = snackbar;
 
     return (
-        <ThemeProvider theme={darkTheme}>
-            <CssBaseline />
-            <div className="App">
-                <Container maxWidth="lg" sx={{ py: 8 }}>
-                    <Snackbar
-                        open={open}
-                        anchorOrigin={{ vertical, horizontal }}
-                        autoHideDuration={2000}
-                        onClose={closeSnackbarHandler}
-                        message={snackMsg}
-                    >
-                        <Alert
+        <AppDispatchContext.Provider value={dispatch}>
+            <ThemeProvider theme={darkTheme}>
+                <CssBaseline />
+                <div className="App">
+                    <Container maxWidth="lg" sx={{ py: 8 }}>
+                        <Snackbar
+                            open={open}
+                            anchorOrigin={{ vertical, horizontal }}
+                            autoHideDuration={2000}
                             onClose={closeSnackbarHandler}
-                            severity="success"
-                            sx={{ width: "100%" }}
+                            message={snackMsg}
                         >
-                            {snackMsg}
-                        </Alert>
-                    </Snackbar>
-
-                    <Grid
-                        container
-                        spacing={2}
-                        sx={{
-                            mt: 8,
-                            flexDirection: "column",
-                            justifyContent: "center",
-                        }}
-                    >
-                        {/* Header Section */}
-                        <Typography variant="h3" gutterBottom>
-                            Convert or Get Text from PNR
-                            <Typography
-                                variant="overline"
-                                display="block"
-                                gutterBottom
-                            >
-                                Читаем ваши мысли <br />
-                            </Typography>
-                        </Typography>
-
-                        {/* Prosessing Errors */}
-                        {processError !== "" && (
                             <Alert
-                                onClose={() => {
-                                    setProcessError("");
-                                    dispatch(doSetResult(""));
-                                }}
-                                sx={{ mb: 2 }}
-                                severity="error"
+                                onClose={closeSnackbarHandler}
+                                severity="success"
+                                sx={{ width: "100%" }}
                             >
-                                Conversion error: {processError}
+                                {snackMsg}
                             </Alert>
-                        )}
+                        </Snackbar>
 
-                        {/* Form Input Section */}
-                        <Grid item>
-                            <TextField
-                                fullWidth
-                                id="outlined-basic"
-                                label="PRN Code"
-                                variant="outlined"
-                                placeholder="Enter your code here."
-                                multiline={true}
-                                rows={6}
-                                value={code}
-                                onChange={(e) =>
-                                    dispatch(doSetUserCode(e.target.value))
+                        <Grid
+                            container
+                            spacing={2}
+                            sx={{
+                                mt: 8,
+                                flexDirection: "column",
+                                justifyContent: "center",
+                            }}
+                        >
+                            {/* Header Section */}
+                            <Typography variant="h3" gutterBottom>
+                                Convert or Get Text from PNR
+                                <Typography
+                                    variant="overline"
+                                    display="block"
+                                    gutterBottom
+                                >
+                                    Читаем ваши мысли <br />
+                                </Typography>
+                            </Typography>
+
+                            {/* Prosessing Errors */}
+                            {processError !== "" && (
+                                <Alert
+                                    onClose={() => {
+                                        setProcessError("");
+                                        dispatch(doSetResult(""));
+                                    }}
+                                    sx={{ mb: 2 }}
+                                    severity="error"
+                                >
+                                    Conversion error: {processError}
+                                </Alert>
+                            )}
+
+                            {/* Form Input Section */}
+                            <Grid item>
+                                <TextField
+                                    fullWidth
+                                    id="outlined-basic"
+                                    label="PRN Code"
+                                    variant="outlined"
+                                    placeholder="Enter your code here."
+                                    multiline={true}
+                                    rows={6}
+                                    value={code}
+                                    onChange={(e) =>
+                                        dispatch(doSetUserCode(e.target.value))
+                                    }
+                                    inputProps={{ "data-testid": "textarea" }}
+                                />
+                            </Grid>
+
+                            {/* Controls Section */}
+                            <Controls
+                                generateHumanTextHandler={
+                                    generateHumanTextHandler
                                 }
-                                inputProps={{ "data-testid": "textarea" }}
+                                convertHandler={convertHandler}
+                                isLoading={loading}
+                                codeValue={code}
+                            />
+
+                            {/* Result Section */}
+                            <Result
+                                copyHandler={copyHandler}
+                                setResult={setResultHandler}
+                                result={result}
+                            />
+
+                            {/* History Section */}
+                            <History
+                                clearHandler={clearHistoryHandler}
+                                history={history}
                             />
                         </Grid>
-
-                        {/* Controls Section */}
-                        <Controls
-                            generateHumanTextHandler={generateHumanTextHandler}
-                            convertHandler={convertHandler}
-                            isLoading={loading}
-                            codeValue={code}
-                        />
-
-                        {/* Result Section */}
-                        <Result
-                            copyHandler={copyHandler}
-                            setResult={setResultHandler}
-                            result={result}
-                        />
-
-                        {/* History Section */}
-                        <History
-                            clearHandler={clearHistoryHandler}
-                            history={history}
-                        />
-                    </Grid>
-                </Container>
-            </div>
-        </ThemeProvider>
+                    </Container>
+                </div>
+            </ThemeProvider>
+        </AppDispatchContext.Provider>
     );
 }
 
