@@ -8,7 +8,7 @@ import {
 import { useContext } from "react";
 import { doOpenSnackbar } from "../actions/App/actionCreators";
 import { AppDispatchContext } from "../App";
-import { appAction, appDispatchFunc } from "../reducers/app";
+import { appDispatchFunc } from "../reducers/app";
 
 interface Props {
     content: string;

@@ -70,3 +70,24 @@ export function doSetUserCode(value: string): appAction {
         payload: { value: value },
     }
 }
+
+export function doSetLuggage(value: boolean): appAction {
+    return {
+        type: "set_luggage",
+        payload: { value: value },
+    }
+}
+
+
+export function doSetPrice(value: number): appAction {
+    return {
+        type: "set_price",
+        payload: { value: value }
+    }
+}
+export function doReset(): appAction {
+    return {
+        type: "reset",
+        payload: {}
+    }
+}

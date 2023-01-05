@@ -5,6 +5,8 @@ export interface appStateInterface {
     result: string;
     history: string[];
     loading: boolean;
+    luggage: boolean;
+    price: number;
     snackbar: {
         open: boolean;
         vertical: verticalType;
@@ -37,7 +39,10 @@ export type appActionType =
     | "get_humantext_usercode"
     | "set_usercode"
     | "set_result"
-    | "set_loading";
+    | "set_loading"
+    | "set_luggage"
+    | "set_price"
+    | "reset";
 
 export enum appActions {
     OPEN_SNACKBAR = "open_snackbar",
@@ -49,6 +54,7 @@ export enum appActions {
     SET_USERCODE = "set_usercode",
     SET_RESULT = "set_result",
     SET_LOADING = "set_loading",
+    SET_LUGGAGE = "set_luggage",
 }
 
 // Reducer
@@ -75,6 +81,12 @@ const appReducer = (
             return actions.setUsercode(state, action);
         case "set_result":
             return actions.setResult(state, action);
+        case "set_luggage":
+            return actions.setLuggage(state, action);
+        case "set_price":
+            return actions.setPrice(state, action);
+        case "reset":
+            return actions.reset(state, action);
         default:
             return state;
     }
@@ -85,6 +97,8 @@ const initialState: appStateInterface = {
     result: "",
     history: [],
     loading: false,
+    luggage: false,
+    price: 0,
     snackbar: {
         open: false,
         vertical: "top",

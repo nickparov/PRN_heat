@@ -81,3 +81,26 @@ export const setResult = (state: appStateInterface, action: appAction) => {
         result: action.payload.value,
     };
 };
+
+export const setLuggage = (state: appStateInterface, action: appAction) => {
+    return {
+        ...state,
+        luggage: action.payload.value,
+    };
+};
+export const setPrice = (state: appStateInterface, action: appAction) => {
+    return {
+        ...state,
+        price: action.payload.value,
+    };
+};
+
+export const reset = (state: appStateInterface, action: appAction) => {
+    return {
+        ...state,
+        code: "",
+        result: "",
+        luggage: false,
+        price: 0,
+    };
+};
