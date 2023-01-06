@@ -1,16 +1,14 @@
 import React, { useEffect, useReducer, useState } from "react";
-import { Snackbar, SnackbarOrigin, TextField } from "@mui/material";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
 import { Alert, Container, Grid, Typography } from "@mui/material";
+import CssBaseline from "@mui/material/CssBaseline";
+import { Snackbar, TextField } from "@mui/material";
 import "./App.css";
 
-import { offerToText } from "./utils/magic";
-import { History } from "./components/History";
-import { processTokens } from "./utils/parser";
-import { Result } from "./components/Result";
 import { Controls } from "./components/Controls";
+import { History } from "./components/History";
+import { Result } from "./components/Result";
 
 import * as appActionCreators from "./actions/App/actionCreators";
 
@@ -38,20 +36,11 @@ function App() {
 
     // App State
     const [appState, dispatch] = useReducer(appReducer, initialAppState);
-    const { code, history, loading, price, luggage } = appState;
+    const { code, history } = appState;
 
     // action creators
-    const {
-        doAppendHistory,
-        doSetResult,
-        doOpenSnackbar,
-        doSetLoading,
-        doCloseSnackbar,
-        doClearHistory,
-        doGetHumanTextUserCode,
-        doSetUserCode,
-        doSetHistory,
-    } = appActionCreators;
+    const { doSetResult, doCloseSnackbar, doSetUserCode, doSetHistory } =
+        appActionCreators;
 
     // once
     useEffect(() => {
@@ -64,104 +53,13 @@ function App() {
         }
     }, []);
 
-    // const localHistory = JSON.parse(localStorage.getItem("history") || "[]");
-
-    // if (localHistory && localHistory.length !== 0) {
-    //     dispatch(doSetHistory(localHistory));
-    // }
-
     useEffect(() => {
         localStorage.setItem("history", JSON.stringify(history));
     }, [history]);
 
-    const appendOptions = (resCode: string): string => {
-        const appendTxt = `\nЦена: ${price}$ | Багаж ${
-            luggage ? "" : "не "
-        }включен`;
-        return resCode.concat(appendTxt);
-    };
-
-    const convert = (): string => {
-        const trueLines: string[] = [];
-        // _ or __: AM/PM
-        const lines = code.split("\n").map((el) => {
-            return el;
-        });
-
-        // console.log(convertTime12To24("3:44 AM"));
-        lines.forEach((line) => {
-            try {
-                const trueLine = processTokens(line.split(" ")).join(" ");
-                trueLines.push(trueLine);
-            } catch (error) {
-                console.error(error);
-            }
-        });
-
-        return trueLines.join("\n");
-    };
-
     // Handlers
     const closeSnackbarHandler = () => {
         dispatch(doCloseSnackbar());
-    };
-
-    const clearHistoryHandler = () => {
-        localStorage.setItem("history", JSON.stringify([]));
-        dispatch(doClearHistory());
-    };
-
-    const generateHumanTextHandler = () => {
-        const convertedCode = convert();
-        const queryCode = convertedCode.split("\n").join(" ");
-
-        dispatch(doSetLoading(true));
-
-        fetch("https://us-central1-pnrconverter.cloudfunctions.net/main", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json;charset=UTF-8",
-            },
-            body: JSON.stringify({
-                query: queryCode,
-            }),
-        })
-            .then((res) => {
-                if (!res.ok) {
-                    setProcessError("Server Error.");
-                    return null;
-                }
-                return res.json();
-            })
-            .then((offerData) => {
-                if (!offerData) return;
-
-                const offerHumanText = appendOptions(
-                    offerToText(offerData.offer)
-                );
-
-                dispatch(doAppendHistory(offerHumanText));
-                dispatch(doSetResult(offerHumanText));
-                dispatch(doOpenSnackbar("Text Generated."));
-                dispatch(doSetLoading(false));
-            })
-            .catch((err) => {
-                console.log(err);
-                setProcessError(err);
-            })
-            .finally(() => {
-                dispatch(doGetHumanTextUserCode());
-            });
-    };
-
-    const convertHandler = (): void => {
-        if (appState.code.length === 0) return;
-
-        const resultCode = convert();
-
-        dispatch(doOpenSnackbar("Conversion done."));
-        dispatch(doAppendHistory(resultCode));
-        dispatch(doSetResult(resultCode));
     };
 
     const { snackbar } = appState;
@@ -248,23 +146,13 @@ function App() {
                                 </Grid>
 
                                 {/* Controls Section */}
-                                <Controls
-                                    generateHumanTextHandler={
-                                        generateHumanTextHandler
-                                    }
-                                    convertHandler={convertHandler}
-                                    isLoading={loading}
-                                    codeValue={code}
-                                />
+                                <Controls setProcessError={setProcessError} />
 
                                 {/* Result Section */}
                                 <Result />
 
                                 {/* History Section */}
-                                <History
-                                    clearHandler={clearHistoryHandler}
-                                    history={history}
-                                />
+                                <History />
                             </Grid>
                         </Container>
                     </div>

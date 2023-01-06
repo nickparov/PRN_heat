@@ -19,8 +19,6 @@ export default function SwitchLabels() {
         AppStateContext
     ) as appStateInterface;
 
-    console.log(luggage);
-
     const dispatch = React.useContext(AppDispatchContext) as appDispatchFunc;
 
     return (

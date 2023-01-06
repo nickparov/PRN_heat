@@ -1,13 +1,18 @@
 import { Button, Grid, Typography } from "@mui/material";
+import { useContext } from "react";
+import { doClearHistory } from "../actions/App/actionCreators";
+import { AppDispatchContext, AppStateContext } from "../App";
+import { appDispatchFunc, appStateInterface } from "../reducers/app";
 import { SingleHistory } from "./SingleHistory";
 
-interface Props {
-    history: string[];
-    clearHandler: () => void;
-}
+const History = () => {
+    const dispatch = useContext(AppDispatchContext) as appDispatchFunc;
+    const { history } = useContext(AppStateContext) as appStateInterface;
 
-const History = (props: Props) => {
-    const { history, clearHandler } = props;
+    const clearHistoryHandler = () => {
+        localStorage.setItem("history", JSON.stringify([]));
+        dispatch(doClearHistory());
+    };
 
     if (history.length === 0) {
         return null;
@@ -25,7 +30,7 @@ const History = (props: Props) => {
                 ))}
             </Grid>
             <Button
-                onClick={clearHandler}
+                onClick={clearHistoryHandler}
                 sx={{ mt: 2 }}
                 variant="outlined"
                 size={"large"}

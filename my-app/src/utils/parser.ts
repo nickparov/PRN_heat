@@ -91,6 +91,7 @@ export function getTrueTimeFromCDGToken(token: string) {
     let trueTime: string;
 
     try {
+        console.log("getTrueTimeFromCDGToken", token)
         proxyTime = getProxy(token);
         trueTime = convertTime12To24(proxyTime);
 
@@ -109,7 +110,7 @@ export function charIndexes(substring: string, string: string) {
 
 export function processTokens(tokens: string[]): string[] {
     return tokens.map((token) => {
-        if (token.length >= 6 && checkJoinedTimeLetters(token)) {
+        if (token.length >= 6 && checkJoinedTimeLetters(token) && US_CDG_timeToken(token)) {
             let indexOfP = token.indexOf("P");
             let indexOfA = token.indexOf("A");
             let targetLetter = null;
@@ -141,7 +142,6 @@ export function processTokens(tokens: string[]): string[] {
                 token.substring(timeIndexes[0]),
             ];
 
-            console.log("parsedTimes", parsedTimes);
 
             const trueTimes = parsedTimes.map(getTrueTimeFromCDGToken);
 
@@ -159,9 +159,8 @@ export function processTokens(tokens: string[]): string[] {
                 US_CDG_timeToken(parsedTokenArr[0]) &&
                 hasNumber(parsedTokenArr[1])
             ) {
-                return `${getTrueTimeFromCDGToken(parsedTokenArr[0])}${
-                    includesPlus ? "+" : "-"
-                }${parsedTokenArr[1]}`;
+                return `${getTrueTimeFromCDGToken(parsedTokenArr[0])}${includesPlus ? "+" : "-"
+                    }${parsedTokenArr[1]}`;
             }
         }
 
